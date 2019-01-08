@@ -1,0 +1,304 @@
+<?php
+//==============================================================================
+// Stripe Payment Gateway Pro v302.2
+// 
+// Author: Clear Thinking, LLC
+// E-mail: johnathan@getclearthinking.com
+// Website: http://www.getclearthinking.com
+// 
+// All code within this file is copyright Clear Thinking, LLC.
+// You may not copy or reuse code within this file without written permission.
+//==============================================================================
+?>
+
+<?php echo $header; ?>
+
+<style type="text/css">
+	hr {
+		border: 0;
+		border-top: 1px solid #EEE;
+		margin: 20px 0;
+	}
+	.pull-right {
+		float: right;
+	}
+	.card-block, .input-block-name, .input-block, .subscription-block {
+		display: inline-block;
+	}
+	.card-block {
+		margin: 7.5px;
+	}
+	.input-block-name {
+		padding: 8px 10px 16px 0;
+		text-align: right;
+		width: 200px;
+		vertical-align: top;
+	}
+	#card-name {
+		width: 200px;
+	}
+	#card-element {
+		background: #FFF;
+		border: 1px solid #DDD;
+		border-radius: 10px;
+		margin-right: 10px;
+		padding: 0 15px;
+		vertical-align: middle;
+		width: 300px;
+	}
+	.StripeElement--complete {
+		border: 1px solid #0C0 !important;
+	}
+	#card-address1, #card-address2, #card-city, #card-zone, #card-postcode {
+		display: block;
+		margin-bottom: 4px;
+	}
+	.required-field {
+		border: 1px solid #F00 !important;
+	}
+	.subscription-block {
+		margin: 0 7.5px;
+	}
+</style>
+
+<div class="container">
+	<ul class="breadcrumb">
+		<?php foreach ($breadcrumbs as $breadcrumb) { ?>
+			<li><a href="<?php echo $breadcrumb['href']; ?>"><?php echo $breadcrumb['text']; ?></a></li>
+		<?php } ?>
+	</ul>
+	
+	<div class="row">
+		<?php echo $column_left; ?>
+		
+		<?php if ($column_left && $column_right) { ?>
+			<?php $class = 'col-sm-6'; ?>
+		<?php } elseif ($column_left || $column_right) { ?>
+			<?php $class = 'col-sm-9'; ?>
+		<?php } else { ?>
+			<?php $class = 'col-sm-12'; ?>
+		<?php } ?>
+		
+		<div id="content" class="<?php echo $class; ?>">
+			<?php echo $content_top; ?>
+			
+			<?php if (isset($cards)) { ?>
+				<h1><?php echo html_entity_decode($settings['cards_page_heading_' . $language], ENT_QUOTES, 'UTF-8'); ?></h1>
+				<hr />
+				
+				<?php if ($cards) { ?>
+					<?php foreach ($cards as $card) { ?>
+						<div>
+							<div class="card-block"><?php echo $card['text']; ?></div>
+							
+							<div class="pull-right">
+								<?php if ($card['default']) { ?>
+									<?php echo html_entity_decode($settings['cards_page_default_card_' . $language], ENT_QUOTES, 'UTF-8'); ?> &nbsp; &nbsp; &nbsp;
+								<?php } else { ?>
+									<a class="button btn btn-primary" onclick="modifyCard('make_default', $(this), '<?php echo $card['id']; ?>')">
+										<?php echo $settings['cards_page_make_default_' . $language]; ?>
+									</a>
+								<?php } ?>
+								<a class="button btn btn-danger" onclick="modifyCard('delete_card', $(this), '<?php echo $card['id']; ?>')">
+									<?php echo $settings['cards_page_delete_' . $language]; ?>
+								</a>
+							</div>
+						</div>
+						<hr />
+					<?php } ?>
+				<?php } else { ?>
+					<?php echo html_entity_decode($settings['cards_page_none_' . $language], ENT_QUOTES, 'UTF-8'); ?>
+					<hr />
+				<?php } ?>
+				
+				<div id="new-card" style="display: none">
+					<div class="input-block-name"><?php echo html_entity_decode($settings['cards_page_card_name_' . $language], ENT_QUOTES, 'UTF-8'); ?></div>
+					<div class="input-block"><input type="text" id="card-name" class="form-control" value="<?php echo $customer_name; ?>" /></div>
+					<br />
+					<div class="input-block-name"><?php echo html_entity_decode($settings['cards_page_card_details_' . $language], ENT_QUOTES, 'UTF-8'); ?></div>
+					<div class="input-block"><div id="card-element"></div></div>
+					<br />
+					<div class="input-block-name"><?php echo html_entity_decode($settings['cards_page_card_address_' . $language], ENT_QUOTES, 'UTF-8'); ?></div>
+					<div class="input-block">
+						<input type="text" id="card-address1" class="form-control" value="" placeholder="<?php echo str_replace(':', '', $entry_address_1); ?>" />
+						<input type="text" id="card-address2" class="form-control" value="" placeholder="<?php echo str_replace(':', '', $entry_address_2); ?>" />
+						<input type="text" id="card-city" class="form-control" value="" placeholder="<?php echo str_replace(':', '', $entry_city); ?>" />
+						<input type="text" id="card-zone" class="form-control" value="" placeholder="<?php echo str_replace(':', '', $entry_zone); ?>" />
+						<input type="text" id="card-postcode" class="form-control" value="" placeholder="<?php echo str_replace(':', '', $entry_postcode); ?>" />
+						<select id="card-country" class="form-control">
+							<?php foreach ($countries as $iso_code => $country) { ?>
+								<option value="<?php echo $iso_code; ?>"><?php echo $country; ?></option>
+							<?php } ?>
+						</select>
+					</div>
+				</div>
+				
+				<div class="input-block-name">
+					<a class="button btn btn-success" onclick="if ($('#new-card').css('display') == 'none') { $('#new-card').slideDown(); } else { tokenize($(this)); }">
+						<?php echo $settings['cards_page_add_card_' . $language]; ?>
+					</a>
+				</div>
+				
+				<br /><br />
+			<?php } ?>
+			
+			<?php if (isset($subscriptions)) { ?>
+				<h1><?php echo html_entity_decode($settings['subscriptions_page_heading_' . $language], ENT_QUOTES, 'UTF-8'); ?></h1>
+				<hr />
+				
+				<?php if ($settings['subscriptions_page_message_' . $language]) { ?>
+					<div><?php echo html_entity_decode($settings['subscriptions_page_message_' . $language], ENT_QUOTES, 'UTF-8'); ?></div>
+					<hr />
+				<?php } ?>
+				
+				<?php if ($subscriptions) { ?>
+					<?php foreach ($subscriptions as $subscription) { ?>
+						<div>
+							<div class="subscription-block">
+								<strong><?php echo $subscription['plan']; ?></strong>
+								<br />
+								<?php if ($subscription['trial']) { ?>
+									<?php echo html_entity_decode($settings['subscriptions_page_trial_' . $language], ENT_QUOTES, 'UTF-8'); ?>
+									<?php echo date($date_format_short, $subscription['trial']); ?>
+								<?php } else { ?>
+									<?php echo html_entity_decode($settings['subscriptions_page_last_' . $language], ENT_QUOTES, 'UTF-8'); ?>
+									<?php echo date($date_format_short, $subscription['last']); ?>
+								<?php } ?>
+								<br />
+								<?php echo html_entity_decode($settings['subscriptions_page_next_' . $language], ENT_QUOTES, 'UTF-8'); ?>
+								<?php echo date($date_format_short, $subscription['next']); ?>
+								<?php foreach ($subscription['invoiceitems'] as $invoiceitem) { ?>
+									<br />
+									<?php echo html_entity_decode($settings['subscriptions_page_charge_' . $language], ENT_QUOTES, 'UTF-8'); ?>
+									<?php echo $invoiceitem; ?>
+								<?php } ?>
+							</div>
+							
+							<div class="pull-right">
+								<a class="button btn btn-danger" onclick="modifyCard('cancel_subscription', $(this), '<?php echo $subscription['id']; ?>')">Cancel</a>
+							</div>
+						</div>
+						<hr />
+					<?php } ?>
+				<?php } else { ?>
+					<?php echo html_entity_decode($settings['subscriptions_page_none_' . $language], ENT_QUOTES, 'UTF-8'); ?>
+					<hr />
+				<?php } ?>
+			<?php } ?>
+			
+			<div class="buttons clearfix">
+				<div class="left pull-left"><a href="<?php echo $back; ?>" class="button btn btn-default"><?php echo $button_back; ?></a></div>
+			</div>
+			<?php echo $content_bottom; ?>
+		</div>
+		
+		<?php echo $column_right; ?>
+	</div>
+</div>
+
+<script type="text/javascript">
+	<?php if ($settings['transaction_mode'] == 'live') { ?>
+		if (window.location.protocol != 'https:') {
+			$('.breadcrumb').after('<div class="alert alert-danger"><i class="fa fa-exclamation-triangle"></i> &nbsp; You are in LIVE mode but are not on a secure (https) connection! Payment info is not secure!</div>');
+		}
+	<?php } ?>
+	
+	var stripe;
+	var card;
+	
+	$.getScript('https://js.stripe.com/v3/', function(data) {
+		stripe = Stripe('<?php echo $settings[$settings['transaction_mode'].'_publishable_key']; ?>');
+		stripeElements = stripe.elements({locale: '<?php echo substr($language, 0, 2); ?>'});
+		card = stripeElements.create('card', {
+			hidePostalCode: true,
+			//iconStyle: 'solid', // use solid if you are on a dark background
+			style: {
+				base: {
+					// full styling options are available at https://stripe.com/docs/stripe.js#element-options
+					color: '#444',
+					fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+					fontSize: '15px',
+					iconColor: '#66F',
+					lineHeight: '40px',
+					'::placeholder': {
+						color: '#CCC',
+					},
+				},
+			}
+		});
+		card.on('change', function(event){
+			/*
+			$('.alert').remove();
+			if (event.error) {
+				displayError(event.error.message);
+			}
+			*/
+		}).mount('#card-element');
+	});
+	
+	function tokenize(element) {
+		var address = true;
+		$('#card-address1, #card-city, #card-zone, #card-postcode').removeClass('required-field');
+		
+		if (!$('#card-address1').val()) {
+			$('#card-address1').addClass('required-field');
+			address = false;
+		}
+		if (!$('#card-city').val()) {
+			$('#card-city').addClass('required-field');
+			address = false;
+		}
+		if (!$('#card-zone').val()) {
+			$('#card-zone').addClass('required-field');
+			address = false;
+		}
+		if (!$('#card-postcode').val()) {
+			$('#card-postcode').addClass('required-field');
+			address = false;
+		}
+		
+		if (!address) return;
+		
+		var extraDetails = {
+			name: $('#card-name').val(),
+			address_line1: $('#card-address1').val(),
+			address_line2: $('#card-address2').val(),
+			address_city: $('#card-city').val(),
+			address_state: $('#card-zone').val(),
+			address_zip: $('#card-postcode').val(),
+			address_country: $('#card-country').val()
+		};
+		stripe.createToken(card, extraDetails).then(function(result){
+			if (result.error) {
+				alert(result.error.message);
+			} else {
+				modifyCard('add_card', element, result.token.id);
+			}
+		});
+	}
+	
+	function modifyCard(request, element, id) {
+		if (request == 'cancel_subscription') {
+			if (prompt('<?php echo $settings['subscriptions_page_confirm_' . $language]; ?>') != 'CANCEL') return;
+		} else if (request == 'delete_card') {
+			if (!confirm('<?php echo $settings['cards_page_confirm_' . $language]; ?>')) return;
+		}
+		
+		var text = element.text();
+		element.html('<?php echo $settings['text_please_wait_' . $language]; ?>').attr('disabled', 'disabled');
+		
+		$.get('index.php?route=<?php echo $type . '/' . $name; ?>/modifyCard&request=' + request + '&id=' + id,
+			function(data) {
+				if (data.trim()) {
+					alert(data.trim());
+					element.html(text).removeAttr('disabled');
+				} else {
+					alert('<?php echo $settings['cards_page_success_' . $language]; ?>');
+					location.reload();
+				}
+			}
+		);
+	}
+</script>
+
+<?php echo $footer; ?>

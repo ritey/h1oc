@@ -1,0 +1,225 @@
+<?php
+//==============================================================================
+// Stripe Payment Gateway Pro v302.1
+// 
+// Author: Clear Thinking, LLC
+// E-mail: johnathan@getclearthinking.com
+// Website: http://www.getclearthinking.com
+// 
+// All code within this file is copyright Clear Thinking, LLC.
+// You may not copy or reuse code within this file without written permission.
+//==============================================================================
+?>
+
+<style type="text/css">
+	#charge-orderid { width: 60px !important; }
+	#charge-statement_descriptor { width: 200px !important; }
+	#charge-amount { width: 60px !important; }
+	#charge-link { cursor: pointer; display: block !important; width: 100% !important; margin-top: 5px; }
+	#customer-cards { margin-top: 10px !important; }
+	#card-element {
+		background: #FFF;
+		border: 1px solid #DDD;
+		border-radius: 10px;
+		margin: -5px 0 0 -5px;
+		padding: 0 15px;
+		vertical-align: middle;
+		width: 400px;
+	}
+	.StripeElement--complete { border: 1px solid #0C0 !important; }
+</style>
+
+<?php if (isset($settings['transaction_mode']) && $settings['transaction_mode'] == 'live' && (empty($this->request->server['HTTPS']) || $this->request->server['HTTPS'] === 'off')) { ?>
+	<div class="alert alert-danger"><i class="fa fa-exclamation-triangle"></i> &nbsp; You are in LIVE mode but are not on a secure (https) connection! Payment info is not secure!</div>
+<?php } ?>
+
+<div id="payment">
+	<div class="text-info text-center"><?php echo $data['help_charge_info']; ?></div>
+	
+	<div class="lead well well-sm text-info"><small><?php echo $data['heading_charge_info']; ?></small></div>
+	
+	<div class="form-group">
+		<label class="col-sm-4 control-label"><?php echo $data['entry_order_id']; ?></label>
+		<div class="col-sm-8">
+			<input type="text" id="charge-orderid" class="form-control" autocomplete="off" value="" />
+		</div>
+	</div>
+	<div class="form-group">
+		<label class="col-sm-4 control-label"><?php echo $data['entry_order_status']; ?></label>
+		<div class="col-sm-8">
+			<select id="charge-orderstatus" class="form-control">
+				<?php foreach ($data['order_status_array'] as $key => $value) { ?>
+					<option value="<?php echo $key; ?>"><?php echo $value; ?></option>
+				<?php } ?>
+			</select>
+		</div>
+	</div>
+	<div class="form-group">
+		<label class="col-sm-4 control-label"><?php echo $data['entry_description']; ?></label>
+		<div class="col-sm-8">
+			<input type="text" id="charge-description" class="form-control" autocomplete="off" value="" />
+		</div>
+	</div>
+	<div class="form-group">
+		<label class="col-sm-4 control-label"><?php echo $data['entry_statement_descriptor']; ?></label>
+		<div class="col-sm-8">
+			<input type="text" id="charge-statement_descriptor" class="form-control" autocomplete="off" value="" maxlength="22" />
+		</div>
+	</div>
+	<div class="form-group">
+		<label class="col-sm-4 control-label"><?php echo $data['entry_amount']; ?></label>
+		<div class="col-sm-8">
+			<input type="text" id="charge-amount" class="form-control" autocomplete="off" value="" />
+			<select id="charge-currency" class="form-control">
+				<?php foreach ($data['currency_array'] as $key => $value) { ?>
+					<option value="<?php echo $key; ?>"><?php echo $value; ?></option>
+				<?php } ?>
+			</select>
+		</div>
+	</div>
+	
+	<div class="lead well well-sm text-info"><small><?php echo $data['heading_create_payment_link']; ?></small></div>
+	
+	<div class="form-group">
+		<label class="col-sm-4 control-label"><?php echo $data['help_create_payment_link']; ?></label>
+		<div class="col-sm-8">
+			<a class="btn btn-success" onclick="generateLink($(this))"><?php echo $data['button_create_payment_link']; ?></a>
+		</div>
+	</div>
+	
+	<div class="lead well well-sm text-info"><small><?php echo $data['heading_use_a_stored_card']; ?></small></div>
+	
+	<div class="form-group">
+		<label class="col-sm-4 control-label"><?php echo $data['entry_customer']; ?></label>
+		<div class="col-sm-8">
+			<input type="text" id="customer-name" class="nosave form-control typeahead" data-type="customer" placeholder="<?php echo $data['placeholder_customer']; ?>" onchange="getCustomerCards()" />
+			<br />
+			<div id="customer-cards"><?php echo $data['text_customers_stored_cards_will']; ?></div>
+		</div>
+	</div>
+	<div class="form-group">
+		<label class="col-sm-4 control-label"></label>
+		<div class="col-sm-8">
+			<a class="btn btn-primary" onclick="if (confirm('<?php echo $data['standard_confirm']; ?>')) chargeCard($(this), '', $('#customer-cards input').val())"><?php echo $data['button_create_charge']; ?></a>
+		</div>
+	</div>
+	
+	<div class="lead well well-sm text-info"><small><?php echo $data['heading_use_a_new_card']; ?></small></div>
+	
+	<div class="form-group">
+		<div class="form-group">
+			<label class="col-sm-4 control-label"><?php echo html_entity_decode($data['text_name_on_card'], ENT_QUOTES, 'UTF-8'); ?></label>
+			<div class="col-sm-8">
+				<input type="text" id="card-name" class="form-control" value="" />
+			</div>
+		</div>
+	</div>
+	<div class="form-group">
+		<label class="col-sm-4 control-label"><?php echo html_entity_decode($data['text_card_details'], ENT_QUOTES, 'UTF-8'); ?></label>
+		<div class="col-sm-8">
+			<div id="card-element"></div>
+		</div>
+	</div>
+	<div class="form-group">
+		<label class="col-sm-4 control-label"></label>
+		<div class="col-sm-8">
+			<a class="btn btn-primary" onclick="if (confirm('<?php echo $data['standard_confirm']; ?>')) createToken($(this))"><?php echo $data['button_create_charge']; ?></a>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+	function generateLink(element) {
+		$('#charge-link').remove();
+		var linkData = btoa('order_id=' + $('#charge-orderid').val() + '&order_status=' + $('#charge-orderstatus').val() + '&description=' + $('#charge-description').val() + '&statement_descriptor=' + $('#charge-statement_descriptor').val() + '&amount=' + $('#charge-amount').val() + '&currency=' + $('#charge-currency').val());
+		element.after('<input id="charge-link" type="text" onclick="this.select()" class="form-control wide" value="<?php echo str_replace('http:', 'https:', HTTP_CATALOG); ?>index.php?route=extension/<?php echo $this->type; ?>/<?php echo $this->name; ?>/link&data=' + linkData + '" />');
+	}
+	
+	function getCustomerCards() {
+		if (!$('#customer-name').val() || $('#customer-name').val().indexOf('[') == -1) return;
+		
+		var customer_id = $('#customer-name').val().split('[')[1].split(']')[0];
+		$('#customer-cards').html('<?php echo $data['standard_please_wait']; ?>');
+		
+		$.ajax({
+			url: 'index.php?route=extension/<?php echo $this->type; ?>/<?php echo $this->name; ?>/getCustomerCards&token=<?php echo $data['token']; ?>&id=' + customer_id,
+			success: function(data) {
+				$('#customer-cards').html(data);
+			},
+			error: function(xhr, status, error) {
+				alert(xhr.responseText ? xhr.responseText : error);
+			}
+		});
+	}
+	
+	var stripe;
+	var card;
+	
+	$.getScript('https://js.stripe.com/v3/', function(data) {
+		stripe = Stripe('<?php echo $settings[$settings['transaction_mode'].'_publishable_key']; ?>');
+		stripeElements = stripe.elements({locale: '<?php echo substr($language, 0, 2); ?>'});
+		card = stripeElements.create('card', {
+			hidePostalCode: true,
+			style: {
+				base: {
+					color: '#444',
+					fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+					fontSize: '15px',
+					iconColor: '#66F',
+					lineHeight: '40px',
+					'::placeholder': {
+						color: '#CCC',
+					},
+				},
+			}
+		});
+		card.mount('#card-element');
+	});
+	
+	function createToken(element) {
+		element.html('<?php echo $data['standard_please_wait']; ?>').attr('disabled', 'disabled');
+		var extraDetails = {
+			name: $('#card-name').val(),
+		};
+		stripe.createToken(card, extraDetails).then(function(result){
+			if (result.error) {
+				alert(result.error.message);
+				element.html('<?php echo $data['button_create_charge']; ?>').removeAttr('disabled');
+				return;
+			} else {
+				chargeCard(element, result.token, '');
+			}
+		});
+	}
+	
+	function chargeCard(element, token, customer) {
+		element.html('<?php echo $data['standard_please_wait']; ?>').attr('disabled', 'disabled');
+		
+		$.ajax({
+			type: 'POST',
+			url: 'index.php?route=extension/<?php echo $this->type; ?>/<?php echo $this->name; ?>/chargeCard&token=<?php echo $data['token']; ?>',
+			data: {
+				token: token.id,
+				customer: customer,
+				order_id: $('#charge-orderid').val(),
+				order_status: $('#charge-orderstatus').val(),
+				description: $('#charge-description').val(),
+				statement_descriptor: $('#charge-statement_descriptor').val(),
+				amount: $('#charge-amount').val(),
+				currency: $('#charge-currency').val(),
+			},
+			success: function(data) {
+				if (data.indexOf('Error:') === 0) {
+					alert(data);
+				} else {
+					alert('<?php echo $data['standard_success']; ?> Transaction ID: ' + data);
+					$('#payment input:not(#customer-name)').val('');
+				}
+				element.html('<?php echo $data['button_create_charge']; ?>').removeAttr('disabled');
+			},
+			error: function(xhr, status, error) {
+				alert(xhr.responseText ? xhr.responseText : error);
+			}
+		});
+	}
+</script>

@@ -1,0 +1,48 @@
+{{ text_received }}
+
+{{ text_order_id }} {{ order_id }}
+{{ text_date_added }} {{ date_added }}
+{{ text_order_status }} {{ order_status }}
+
+{{ text_product }}
+
+{% for product in products %}
+{{ product.quantity }}x {{ product.name }} ({{ product.model }}) {{ product.total }}
+{% if option %}
+{% for option in product.option %}
+	- {{ option.name }} {{ option.value }}
+{% endfor %}
+{% endif %}
+{% endfor %} 
+{% if vouchers %}
+
+{% for voucher in vouchers %}
+1x {{ voucher.description }} {{ voucher.amount }}
+{% endfor %} 
+{% endif %}
+{{ text_total }}
+
+{% for total in totals %}
+{{ total.title }}: {{ total.value }}
+{% endfor %} 
+  
+{% if comment %}
+{{ text_comment }}
+
+{{ comment }}
+{% endif %}
+
+
+Shipping details
+
+{{ order_info.shipping_firstname }}
+{{ order_info.shipping_lastname }}
+{{ order_info.email }}
+{{ order_info.telephone }}
+{{ order_info.shipping_company }}
+{{ order_info.shipping_address_1 }}
+{{ order_info.shipping_address_2 }}
+{{ order_info.shipping_postcode }}
+{{ order_info.shipping_city }}
+{{ order_info.shipping_zone }}
+{{ order_info.shipping_country }}

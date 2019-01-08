@@ -1,0 +1,102 @@
+<div class="top-footer">
+  <div class="row">
+    <div class="column medium-12 small-12 medium-centered ">
+      <div class="row">
+        <div class="column medium-4 small-12">
+          <p class="text-center"><strong>Ace</strong> a Hole</p>
+        </div>
+        <div class="column medium-4 small-12">
+          <p class="text-center"><strong>Register</strong> with us</p>
+        </div>
+        <div class="column medium-4 small-12">
+          <p class="text-center">Enjoy the <strong>Benefits</strong></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="partner-footer">
+  <div class="row">
+    <div class="columns medium-10 small-12 medium-centered">
+      <div class="row">
+        <div class="columns small-3 medium-3">
+          <a class="partner telegraph" href="http://www.gq-magazine.co.uk/">
+            <img src="https://www.h1club.co.uk//images/logos/gq-magazine-logo.png" alt="GQ Magazine">
+          </a>
+        </div>
+        <div class="columns small-3 medium-3">
+          <a class="partner howdidido" href="http://www.howdidido.com/">
+            <img src="https://www.h1club.co.uk//images/logos/howdidido-long-black.png" alt="How Did I Do">
+          </a>
+        </div>
+        <div class="columns small-3 medium-3">
+          <a class="partner howdidido" href="/newport-beach">
+            <img src="https://www.h1club.co.uk/images/logos/newportbeach-black.png" alt="Newport Beach">
+          </a>
+        </div>
+
+        <div class="columns small-3 medium-3">
+
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="bottom-footer">
+  <div class="row expanded">
+    <div class="column medium-centered medium-10 small-12">
+        <ul class="medium-horizontal menu expanded text-center">
+          <li class="small-12&nbsp;medium-3&nbsp;large-3"><a href="https://www.h1club.co.uk/register">Register</a></li>
+        </ul>
+    </div>
+  </div>
+</div>
+<footer>
+  <div class="container">
+    <div class="row">
+      {% if informations %}
+      <div class="col-sm-3">
+        <h5>{{ text_information }}</h5>
+        <ul class="list-unstyled">
+         {% for information in informations %}
+          <li><a href="{{ information.href }}">{{ information.title }}</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+      <div class="col-sm-3">
+        <h5>{{ text_service }}</h5>
+        <ul class="list-unstyled">
+          <li><a href="{{ contact }}">{{ text_contact }}</a></li>
+          <li><a href="{{ return }}">{{ text_return }}</a></li>
+          <li><a href="{{ sitemap }}">{{ text_sitemap }}</a></li>
+        </ul>
+      </div>
+      <div class="col-sm-3">
+        <h5>{{ text_extra }}</h5>
+        <ul class="list-unstyled">
+          <li><a href="{{ manufacturer }}">{{ text_manufacturer }}</a></li>
+          <li><a href="{{ voucher }}">{{ text_voucher }}</a></li>
+          <li><a href="{{ affiliate }}">{{ text_affiliate }}</a></li>
+          <li><a href="{{ special }}">{{ text_special }}</a></li>
+        </ul>
+      </div>
+      <div class="col-sm-3">
+        <h5>{{ text_account }}</h5>
+        <ul class="list-unstyled">
+          <li><a href="{{ account }}">{{ text_account }}</a></li>
+          <li><a href="{{ order }}">{{ text_order }}</a></li>
+          <li><a href="{{ wishlist }}">{{ text_wishlist }}</a></li>
+          <li><a href="{{ newsletter }}">{{ text_newsletter }}</a></li>
+        </ul>
+      </div>
+    </div>
+    <hr>
+    <p>Maintained by <a href="https://www.coderstudios.com" target="_blank">Coder Studios</a></p>
+  </div>
+</footer>
+{% for script in scripts %}
+<script src="{{ script }}" type="text/javascript"></script>
+{% endfor %}
+</body></html>
