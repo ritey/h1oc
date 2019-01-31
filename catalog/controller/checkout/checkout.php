@@ -2,7 +2,7 @@
 class ControllerCheckoutCheckout extends Controller {
 	public function index() {
 		// Validate cart has products and has stock.
-		//$this->session->data['coupon'] = 'member';
+		//$this->session->data['coupon'] = 'free_glove';
 
 		if ((!$this->cart->hasProducts() && empty($this->session->data['vouchers'])) || (!$this->cart->hasStock() && !$this->config->get('config_stock_checkout'))) {
 			$this->response->redirect($this->url->link('checkout/cart'));
@@ -37,6 +37,17 @@ class ControllerCheckoutCheckout extends Controller {
 			if ($products[0]['product_id'] == 12) {
 				$this->session->data['coupon'] = '';
 			}
+		}
+
+		if (count($products) == 1) {
+			if ($products[0]['product_id'] == 17 && $products[0]['quantity'] == 1 && $this->session->data['coupon'] == 'freeglove') {
+				$this->session->data['coupon'] = '';
+				$this->response->redirect($this->url->link('checkout/cart'));
+			}
+			
+			//echo '<pre>'. print_r($products,true).'</pre>';
+			//exit();
+
 		}
 		
 		$this->load->language('checkout/checkout');
@@ -100,18 +111,21 @@ class ControllerCheckoutCheckout extends Controller {
 		}
 		
 		$data['free_glove'] = 1;
-		if ($this->cart->getSubTotal() > 10.95 && count($this->cart->getProducts()) > 1) {
-			$this->session->data['coupon'] = 'freeglove';
-			$this->session->data['free_glove'] = 1;
-		} else {
+		$this->session->data['free_glove'] = 1;
+		$this->session->data['coupon'] = 'freeglove';
+		if ($this->cart->getSubTotal() < 12.95 && count($this->cart->getProducts()) < 2) {
 			$this->session->data['coupon'] = '';
-			unset($this->session->data['free_glove']);
+			$this->session->data['free_glove'] = 0;
 		}
 		
+		//var_dump($this->session->data);
+		//exit();
+		/*	
 		if ($has_glove) {
 			unset($this->session->data['free_glove']);
 			$data['free_glove'] = 0;
 		}
+		*/
 
 		$data['shipping_required'] = $this->cart->hasShipping();
 
